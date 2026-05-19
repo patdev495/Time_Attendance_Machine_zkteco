@@ -14,7 +14,7 @@ import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 import base64
 import time
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, cast
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ def delete_user_from_machine(ip: str, employee_id: str):
         conn = zk.connect()
         conn.disable_device()
         users = conn.get_users()
-        target_user = next((u for u in users if u.user_id == str(employee_id)), None)
+        target_user = next((u for u in users if u.user_id == employee_id), None)
         
         result = "Not in device"
         if target_user:
@@ -173,7 +173,7 @@ def update_user_name_on_machine(ip: str, employee_id: str, new_name: str):
         conn = zk.connect()
         conn.disable_device()
         users = conn.get_users()
-        target = next((u for u in users if u.user_id == str(employee_id)), None)
+        target = next((u for u in users if u.user_id == employee_id), None)
         
         if not target:
             return f"User {employee_id} not found on machine {ip}"
@@ -202,7 +202,7 @@ def download_fingerprints_from_machine(ip: str, employee_id: str):
         conn = zk.connect()
         conn.disable_device()
         users = conn.get_users()
-        target = next((u for u in users if u.user_id == str(employee_id)), None)
+        target = next((u for u in users if u.user_id == employee_id), None)
         
         if not target:
             return 0, f"User {employee_id} not found on machine {ip}"
@@ -210,7 +210,7 @@ def download_fingerprints_from_machine(ip: str, employee_id: str):
         templates = conn.get_templates()
         user_templates = [
             t for t in templates 
-            if str(t.uid) == str(target.uid) or str(getattr(t, 'user_id', '')) == str(employee_id)
+            if str(t.uid) == str(target.uid) or str(getattr(t, 'user_id', '')) == employee_id
         ]
         
         if not user_templates:
@@ -327,7 +327,7 @@ def check_user_biometric_on_machine(ip: str, employee_id: str):
         conn = zk.connect()
         conn.disable_device()
         users = conn.get_users()
-        target = next((u for u in users if u.user_id == str(employee_id)), None)
+        target = next((u for u in users if u.user_id == employee_id), None)
         
         if not target:
             return {"ip": ip, "status": "Online", "has_user": False, "has_finger": False}
@@ -396,7 +396,7 @@ def update_user_name_all_machines(employee_id: str, new_name: str):
     try:
         emp = db.query(EmployeeMetadata).filter(EmployeeMetadata.employee_id == employee_id).first()
         if emp:
-            emp.emp_name = new_name
+            emp.emp_name = new_name  # type: ignore
             db.commit()
     except Exception as e:
         logger.error(f"Error updating name in DB: {e}")
@@ -559,12 +559,12 @@ def push_fingerprints_to_machines(employee_id: str, target_ips: list):
                 
                 # Check if user exists, otherwise create
                 users = conn.get_users()
-                target_user = next((u for u in users if u.user_id == str(employee_id)), None)
+                target_user = next((u for u in users if u.user_id == employee_id), None)
                 
                 if not target_user:
                     # Determine a new UID (some machines need unique UID)
                     new_uid = max([u.uid for u in users] + [0]) + 1
-                    target_user = User(uid=new_uid, name=emp_name, privilege=emp_privilege, user_id=str(employee_id))
+                    target_user = User(uid=new_uid, name=emp_name, privilege=emp_privilege, user_id=employee_id)
                     conn.set_user(uid=target_user.uid, name=target_user.name, privilege=target_user.privilege, user_id=target_user.user_id)
                 elif target_user.privilege != emp_privilege:
                     # Update existing user privilege
@@ -574,7 +574,7 @@ def push_fingerprints_to_machines(employee_id: str, target_ips: list):
                 # Push each fingerprint
                 finger_objs = []
                 for f in fingerprints:
-                    template_data = base64.b64decode(f.template_data)
+                    template_data = base64.b64decode(cast(str, f.template_data))
                     # Create Finger object: Finger(uid, fid, valid, template)
                     finger_objs.append(Finger(target_user.uid, f.template_id, 1, template_data))
                 
@@ -678,7 +678,7 @@ def _push_to_single_machine(ip, pushable_ids, fp_map, emp_map, emp_priv_map):
             
             finger_objs = []
             for f in needed_fps:
-                template_data = base64.b64decode(f.template_data)
+                template_data = base64.b64decode(cast(str, f.template_data))
                 finger_objs.append(Finger(target_user.uid, f.template_id, 1, template_data))
             
             if finger_objs:
@@ -781,7 +781,7 @@ def _safe_clear_data(conn):
     """Wrapper for conn.clear_data() — fixes Python 2→3 str/bytes bug in pyzk without modifying library source."""
     from zk import const as zk_const
     command = zk_const.CMD_CLEAR_DATA
-    cmd_response = conn._ZK__send_command(command, b'')
+    cmd_response = conn._ZK__send_command(command, b'')  # type: ignore
     if cmd_response.get('status'):
         conn.next_uid = 1
         return True
@@ -855,7 +855,7 @@ def set_user_privilege_on_machine(ip: str, employee_id: str, privilege: int):
         conn = zk.connect()
         conn.disable_device()
         users = conn.get_users()
-        target_user = next((u for u in users if u.user_id == str(employee_id)), None)
+        target_user = next((u for u in users if u.user_id == employee_id), None)
         
         if not target_user:
              return "User not found on device"
@@ -871,7 +871,7 @@ def set_user_privilege_on_machine(ip: str, employee_id: str, privilege: int):
              for model in [EmployeeLocalRegistry, EmployeeMetadata]:
                  emp = db.query(model).filter(model.employee_id == employee_id).first()
                  if emp:
-                     emp.privilege = privilege
+                     emp.privilege = privilege # type: ignore
              db.commit()
         finally: db.close()
         
@@ -1035,7 +1035,7 @@ def enroll_user_remote(ip: str, employee_id: str, temp_id: int = 0):
 
         # 1. Ensure user exists
         users = conn.get_users()
-        target = next((u for u in users if u.user_id == str(employee_id)), None)
+        target = next((u for u in users if u.user_id == employee_id), None)
         
         if not target:
             db = SessionLocal()
@@ -1044,7 +1044,7 @@ def enroll_user_remote(ip: str, employee_id: str, temp_id: int = 0):
                 emp_info = db.query(EmployeeLocalRegistry).filter(EmployeeLocalRegistry.employee_id == employee_id).first()
                 emp_name = emp_info.emp_name if emp_info and emp_info.emp_name else employee_id
                 new_uid = max([u.uid for u in users] + [0]) + 1
-                conn.set_user(uid=new_uid, name=emp_name, privilege=0, user_id=str(employee_id))
+                conn.set_user(uid=new_uid, name=emp_name, privilege=0, user_id=employee_id)
                 target_uid = new_uid
             finally:
                 db.close()
@@ -1058,13 +1058,13 @@ def enroll_user_remote(ip: str, employee_id: str, temp_id: int = 0):
         import codecs
 
         if zk.tcp:
-            command_string = pack('<24sbb', str(employee_id).encode(), temp_id, 1)
+            command_string = pack('<24sbb', employee_id.encode(), temp_id, 1)
         else:
             command_string = pack('<Ib', int(employee_id), temp_id)
         
         conn.cancel_capture()
         # Send STARTENROLL
-        res = conn._ZK__send_command(const.CMD_STARTENROLL, command_string)
+        res = conn._ZK__send_command(const.CMD_STARTENROLL, command_string)  # type: ignore
         if not res.get('status'):
             raise Exception(f"Machine rejected enrollment command: {res.get('code')}")
 
@@ -1074,7 +1074,7 @@ def enroll_user_remote(ip: str, employee_id: str, temp_id: int = 0):
         start_time = time.time()
         
         # Set a short socket timeout just for the recv calls so we can loop and check cancellation
-        conn._ZK__sock.settimeout(2.0) 
+        conn._ZK__sock.settimeout(2.0)   # type: ignore
         
         attempts = 3
         while attempts > 0:
@@ -1086,8 +1086,8 @@ def enroll_user_remote(ip: str, employee_id: str, temp_id: int = 0):
 
             try:
                 # Wait for progress data from machine
-                data_recv = conn._ZK__sock.recv(1032)
-                conn._ZK__ack_ok()
+                data_recv = conn._ZK__sock.recv(1032)  # type: ignore
+                conn._ZK__ack_ok()  # type: ignore
                 
                 # Logic to detect successful scans (simplified from pyzk)
                 # res 0x64 (100) means a successful partial scan

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, cast
 from datetime import datetime
 from database import get_db, EmployeeMetadata
 from config import DEMO_MODE
@@ -18,7 +18,9 @@ if not DEMO_MODE:
         sync_time_on_machine, bulk_sync_time_all_machines,
         global_sync_status, global_sync_all_fingerprints,
         clear_all_fingerprints_on_machine, clear_fp_status,
-        enroll_user_remote, update_machine_tags, get_all_machine_configs
+        enroll_user_remote, update_machine_tags, get_all_machine_configs,
+        push_status, push_fingerprints_to_machines,
+        bulk_push_status, bulk_push_fingerprints_to_machines
     )
 else:
     # In DEMO_MODE, hardware service is not available
@@ -103,9 +105,10 @@ def get_machine_employees(ip: str, db: Session = Depends(get_db)):
         registry = db.query(EmployeeLocalRegistry).all()
         enriched = []
         for reg in registry:
+            emp_id = cast(str, reg.employee_id)
             enriched.append({
-                "uid": int(reg.employee_id) if reg.employee_id.isdigit() else 0,
-                "user_id": reg.employee_id,
+                "uid": int(emp_id) if emp_id.isdigit() else 0,
+                "user_id": emp_id,
                 "name": reg.emp_name or "",
                 "privilege": reg.privilege or 0,
                 "password": "",
@@ -213,7 +216,6 @@ def get_bulk_global_delete_status():
 @router.post("/push-fingerprints")
 def trigger_push_fingerprints(data: PushFingerprintsRequest, background_tasks: BackgroundTasks):
     """Start background global fingerprint pushing."""
-    from .service import push_status, push_fingerprints_to_machines
     if push_status["is_running"]:
         raise HTTPException(status_code=400, detail="Another push operation is in progress")
     
@@ -223,13 +225,11 @@ def trigger_push_fingerprints(data: PushFingerprintsRequest, background_tasks: B
 @router.get("/push-status")
 def get_push_status():
     """Poll status of the fingerprint push operation."""
-    from .service import push_status
     return push_status
 
 @router.post("/bulk-push-fingerprints")
 def trigger_bulk_push_fingerprints(data: BulkPushRequest, background_tasks: BackgroundTasks):
     """Start background bulk fingerprint pushing."""
-    from .service import bulk_push_status, bulk_push_fingerprints_to_machines
     if bulk_push_status["is_running"]:
         raise HTTPException(status_code=400, detail="Another bulk push operation is in progress")
     

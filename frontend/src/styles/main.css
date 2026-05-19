@@ -166,3 +166,11 @@ label {
 @media (max-width: 768px) {
   th, td { padding: 10px 12px; }
 }
+
+/* Auto-zoom for laptop screen width (PC remains 100%) */
+@media screen and (min-width: 1025px) and (max-width: 1600px) {
+  body {
+    zoom: 0.75;
+  }
+}
+
