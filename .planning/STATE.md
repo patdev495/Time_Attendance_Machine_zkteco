@@ -1,13 +1,13 @@
 # Project State: Time Attendance Machine
 
 ## Current Milestone
-- **Name**: v3.0 — Comprehensive Multi-language Support (i18n)
-- **Status**: Starting
-- **Progress**: 0% (Requirements defined)
+- **Name**: v8.1 — Kiosk, Live Mode & Deployments (Current Codebase: v8.1.3)
+- **Status**: Completed
+- **Progress**: 100%
 
 ## Active Phase
 - **Phase**: None
-- **Goal**: Initialize milestone v3.0.
+- **Goal**: Project exploration and context alignment.
 
 ## Accumulated Context
 
