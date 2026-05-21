@@ -232,9 +232,12 @@ class LiveMonitorManager:
                 return
             self._recent_events[dedup_key] = timestamp
             
-            # Cleanup old entries (older than 120 seconds)
-            cutoff = timestamp
-            expired = [k for k, v in self._recent_events.items() 
+            # Cleanup old entries (older than 120 seconds).
+            # Use datetime.now() as the cutoff — not event.timestamp — so that
+            # machine clock drift cannot prevent expired entries from being removed.
+            from datetime import datetime as _dt
+            cutoff = _dt.now()
+            expired = [k for k, v in self._recent_events.items()
                       if (cutoff - v).total_seconds() > 120]
             for k in expired:
                 del self._recent_events[k]
@@ -347,8 +350,12 @@ class LiveMonitorManager:
 
         except Exception as e:
             logger.error(f"Error processing live event: {e}")
-            db.rollback()
         finally:
+            # rollback() is a no-op if the transaction was already committed.
+            # Calling it unconditionally here ensures the session is cleanly
+            # reset even when a BaseException (e.g. MemoryError) bypasses the
+            # except block above.
+            db.rollback()
             db.close()
 
     def set_loop(self, loop):

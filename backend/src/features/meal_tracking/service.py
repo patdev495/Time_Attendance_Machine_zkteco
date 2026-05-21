@@ -265,35 +265,7 @@ def log_meal_swipe(machine_user_id: str, machine_ip: str, swipe_time: datetime, 
     finally:
         db.close()
 
-def was_meal_already_received(machine_user_id: str, check_date: date) -> bool:
-    """
-    Check if the user has already successfully swiped for a meal today
-    by querying the external HR_MEAL_PICKUP_LOG table.
-    """
-    from database import MealSessionLocal
-    from sqlalchemy import text
-    
-    db = MealSessionLocal()
-    try:
-        mfg_day = check_date.strftime("%Y%m%d")
-        logger.debug(f"[DEDUP CHECK] emp_no='{machine_user_id}', mfg_day='{mfg_day}'")
-        # Check HR_MEAL_PICKUP_LOG for this user on this date
-        result = db.execute(
-            text("""
-                SELECT COUNT(*) 
-                FROM HR_MEAL_PICKUP_LOG 
-                WHERE EMP_NO = :emp_no AND MFG_DAY = :mfg_day
-            """),
-            {"emp_no": machine_user_id, "mfg_day": mfg_day}
-        ).scalar()
-        
-        logger.debug(f"[DEDUP CHECK] COUNT result = {result}, returning {result > 0}")
-        return result > 0
-    except Exception as e:
-        logger.error(f"Error checking duplicate meal in HR DB: {e}")
-        return False
-    finally:
-        db.close()
+
 
 def check_meal_by_machine_id(machine_user_id: str, check_date: date = None) -> dict | None:
     """
