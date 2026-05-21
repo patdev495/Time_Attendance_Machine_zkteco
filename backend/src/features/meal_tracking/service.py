@@ -276,7 +276,7 @@ def was_meal_already_received(machine_user_id: str, check_date: date) -> bool:
     db = MealSessionLocal()
     try:
         mfg_day = check_date.strftime("%Y%m%d")
-        print(f">>> DEDUP CHECK: emp_no='{machine_user_id}', mfg_day='{mfg_day}'")
+        logger.debug(f"[DEDUP CHECK] emp_no='{machine_user_id}', mfg_day='{mfg_day}'")
         # Check HR_MEAL_PICKUP_LOG for this user on this date
         result = db.execute(
             text("""
@@ -287,7 +287,7 @@ def was_meal_already_received(machine_user_id: str, check_date: date) -> bool:
             {"emp_no": machine_user_id, "mfg_day": mfg_day}
         ).scalar()
         
-        print(f">>> DEDUP CHECK: COUNT result = {result}, returning {result > 0}")
+        logger.debug(f"[DEDUP CHECK] COUNT result = {result}, returning {result > 0}")
         return result > 0
     except Exception as e:
         logger.error(f"Error checking duplicate meal in HR DB: {e}")
@@ -365,7 +365,7 @@ def try_log_meal_pickup(meal_info: dict, machine_ip: str) -> bool:
         db.commit()
         
         was_new = True
-        print(f">>> ATOMIC MEAL: emp_no='{emp_no}', mfg_day='{mfg_day}', was_new={was_new}")
+        logger.debug(f"[ATOMIC MEAL] emp_no='{emp_no}', mfg_day='{mfg_day}', was_new=True")
         logger.info(f"Successfully logged external meal pickup for {emp_no} on {machine_ip}")
         return True
         
@@ -395,14 +395,14 @@ def try_log_meal_pickup(meal_info: dict, machine_ip: str) -> bool:
                 # If it happened within the last 5 seconds, it's a race condition or hardware replay.
                 # More than 5 seconds is treated as a genuine duplicate swipe.
                 if abs(time_diff) < 5:
-                    print(f">>> ATOMIC MEAL: emp_no='{emp_no}', mfg_day='{mfg_day}', was_new=True (Race condition success, diff={time_diff:.2f}s)")
+                    logger.debug(f"[ATOMIC MEAL] emp_no='{emp_no}', mfg_day='{mfg_day}', was_new=True (Race condition success, diff={time_diff:.2f}s)")
                     return True
         except Exception as e2:
             logger.error(f"Error checking race condition: {e2}")
         finally:
             db_check.close()
 
-        print(f">>> ATOMIC MEAL: emp_no='{emp_no}', mfg_day='{mfg_day}', was_new=False (IntegrityError: {ie})")
+        logger.debug(f"[ATOMIC MEAL] emp_no='{emp_no}', mfg_day='{mfg_day}', was_new=False (IntegrityError)")
         logger.info(f"Duplicate meal pickup skipped for {meal_info.get('emp_no')} (already in HR DB)")
         return False
     except Exception as e:

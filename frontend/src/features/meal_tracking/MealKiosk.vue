@@ -317,6 +317,8 @@ const loadingHistory = ref(false)
 
 const currentTime = ref('')
 let timeInterval = null
+let statsInterval = null
+let liveStatusInterval = null
 
 const activeMachines = computed(() => {
   if (selectedMachine.value === 'all') {
@@ -732,8 +734,8 @@ onMounted(() => {
   
   fetchStats()
   loadTodayPickups()
-  setInterval(fetchStats, 60000) 
-  setInterval(fetchLiveStatus, 10000) 
+  statsInterval = setInterval(fetchStats, 60000)
+  liveStatusInterval = setInterval(fetchLiveStatus, 10000)
   
   fetchCanteenMachines().then(() => {
     if (showHistory.value) handleSearch()
@@ -743,6 +745,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearInterval(timeInterval)
+  clearInterval(statsInterval)
+  clearInterval(liveStatusInterval)
   disconnect()
   uiStore.setSidebar(true)
 })
