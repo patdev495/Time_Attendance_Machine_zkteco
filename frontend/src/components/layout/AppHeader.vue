@@ -28,7 +28,17 @@
         <div class="modal-body-global">
           <div class="machine-config-list">
             <div v-for="m in allMachineConfigs" :key="m.ip" class="machine-config-item">
-              <div class="m-ip">{{ m.ip }}</div>
+              <div class="m-info-col">
+                <div class="m-ip">
+                  {{ getMachineStatusIcon(m.ip) }} {{ m.ip }}
+                </div>
+                <div v-if="machineStatus[m.ip] && machineStatus[m.ip].last_real_event" class="m-last-activity">
+                  {{ $t('meal.last_event') }} {{ formatLastEventTime(machineStatus[m.ip].last_real_event) }}
+                </div>
+                <div v-else-if="machineStatus[m.ip] && m.is_live" class="m-last-activity no-activity">
+                  {{ $t('meal.no_event') }}
+                </div>
+              </div>
               <div class="m-toggles">
                 <label class="toggle-switch">
                   <input type="checkbox" v-model="m.is_live" @change="toggleMachineConfig(m)">
@@ -40,6 +50,15 @@
                   <span class="slider"></span>
                   <span class="label">{{ $t('meal.toggle_canteen') || 'Canteen' }}</span>
                 </label>
+                <button 
+                  v-if="m.is_live"
+                  class="btn btn-reconnect-small" 
+                  @click="handleReconnect(m.ip)"
+                  :disabled="reconnectingIps.includes(m.ip)"
+                  :title="$t('meal.reconnect_title') + ' ' + m.ip"
+                >
+                  🔄 {{ reconnectingIps.includes(m.ip) ? '...' : $t('meal.reconnect_btn') }}
+                </button>
               </div>
             </div>
           </div>
@@ -79,7 +98,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onUnmounted, watch } from 'vue'
+import { getLiveStatus, reconnectMachine } from '@/features/machines/api.js'
 import { useSyncStore } from '@/stores/sync.js'
 import { useExportStore } from '@/stores/export.js'
 import { useAttendanceStore } from '@/stores/attendance.js'
@@ -107,6 +127,59 @@ function goHome() {
 
 const showMachineSettings = ref(false)
 const allMachineConfigs = ref([])
+const machineStatus = ref({})
+const reconnectingIps = ref([])
+let statusInterval = null
+
+async function fetchLiveStatus() {
+  try {
+    const data = await getLiveStatus()
+    machineStatus.value = data || {}
+  } catch (e) {
+    console.error('Error fetching machine status:', e)
+  }
+}
+
+function getMachineStatusIcon(ip) {
+  const m = machineStatus.value[ip]
+  if (!m) return '⚪'
+  const status = typeof m === 'object' ? m.status : m
+  if (status === 'connected') return '🟢'
+  if (status === 'stuck') return '🟡'
+  if (status === 'disconnected') return '🔴'
+  return '⚪'
+}
+
+async function handleReconnect(ip) {
+  reconnectingIps.value.push(ip)
+  try {
+    const res = await reconnectMachine(ip)
+    console.log(`Reconnected machine ${ip}:`, res.message)
+    await fetchLiveStatus()
+  } catch (e) {
+    console.error(`Failed to reconnect machine ${ip}:`, e)
+    alert(`Không thể kết nối lại máy ${ip}: ${e.message}`)
+  } finally {
+    reconnectingIps.value = reconnectingIps.value.filter(item => item !== ip)
+  }
+}
+
+function formatLastEventTime(timestamp) {
+  if (!timestamp) return ''
+  const d = new Date(timestamp * 1000)
+  return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
+
+watch(showMachineSettings, (newVal) => {
+  if (!newVal && statusInterval) {
+    clearInterval(statusInterval)
+    statusInterval = null
+  }
+})
+
+onUnmounted(() => {
+  if (statusInterval) clearInterval(statusInterval)
+})
 
 async function openMachineSettings() {
   console.log('Opening machine settings...');
@@ -117,6 +190,12 @@ async function openMachineSettings() {
     }
     allMachineConfigs.value = data
     showMachineSettings.value = true
+    
+    // Fetch live status immediately
+    fetchLiveStatus()
+    // Start interval
+    if (statusInterval) clearInterval(statusInterval)
+    statusInterval = setInterval(fetchLiveStatus, 10000)
   } catch (e) {
     console.error('Error fetching machine configs:', e)
     alert('Không thể kết nối đến máy chủ: ' + (e.response?.data?.detail || e.message));
@@ -229,8 +308,8 @@ option {
 }
 
 .modal-content-global {
-  width: 500px;
-  max-width: 90vw;
+  width: 680px;
+  max-width: 95vw;
   background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
@@ -279,7 +358,51 @@ option {
 }
 
 .m-ip { font-family: monospace; color: #60a5fa; font-weight: 600; }
-.m-toggles { display: flex; gap: 15px; }
+.m-toggles { display: flex; gap: 15px; align-items: center; }
+
+.m-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.m-last-activity {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: left;
+}
+
+.m-last-activity.no-activity {
+  color: #f59e0b;
+  opacity: 0.8;
+}
+
+.btn-reconnect-small {
+  padding: 4px 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-reconnect-small:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+  color: white;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.btn-reconnect-small:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* Toggle Switch Styling */
 .toggle-switch { display: flex; align-items: center; gap: 6px; cursor: pointer; }

@@ -420,6 +420,10 @@
     "machine_settings": "Machine Configuration",
     "toggle_live": "Live Monitor",
     "toggle_canteen": "Canteen Machine",
-    "config_note": "* Changes will be updated by the system within 10 seconds."
+    "config_note": "* Changes will be updated by the system within 10 seconds.",
+    "last_event": "Last event:",
+    "no_event": "No swipes received yet",
+    "reconnect_btn": "Reset",
+    "reconnect_title": "Reconnect live-monitor thread for machine"
   }
 }

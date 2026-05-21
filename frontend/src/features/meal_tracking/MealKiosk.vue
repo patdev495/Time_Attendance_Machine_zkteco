@@ -53,7 +53,17 @@
           <div class="modal-body">
             <div class="machine-config-list">
               <div v-for="m in allMachineConfigs" :key="m.ip" class="machine-config-item">
-                <div class="m-ip">{{ m.ip }}</div>
+                <div class="m-info-col">
+                  <div class="m-ip">
+                    {{ getMachineStatusIcon(m.ip) }} {{ m.ip }}
+                  </div>
+                  <div v-if="machineStatus[m.ip] && machineStatus[m.ip].last_real_event" class="m-last-activity">
+                    {{ $t('meal.last_event') }} {{ formatLastEventTime(machineStatus[m.ip].last_real_event) }}
+                  </div>
+                  <div v-else-if="machineStatus[m.ip] && m.is_live" class="m-last-activity no-activity">
+                    {{ $t('meal.no_event') }}
+                  </div>
+                </div>
                 <div class="m-toggles">
                   <label class="toggle-switch" :title="$t('meal.toggle_live') || 'Bật/Tắt theo dõi trực tiếp'">
                     <input type="checkbox" v-model="m.is_live" @change="toggleMachineConfig(m)">
@@ -65,6 +75,15 @@
                     <span class="slider"></span>
                     <span class="label">{{ $t('meal.toggle_canteen') || 'Canteen' }}</span>
                   </label>
+                  <button 
+                    v-if="m.is_live"
+                    class="btn btn-reconnect-small" 
+                    @click="handleReconnect(m.ip)"
+                    :disabled="reconnectingIps.includes(m.ip)"
+                    :title="$t('meal.reconnect_title') + ' ' + m.ip"
+                  >
+                    🔄 {{ reconnectingIps.includes(m.ip) ? '...' : $t('meal.reconnect_btn') }}
+                  </button>
                 </div>
               </div>
             </div>
@@ -235,7 +254,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { mealApi } from './api'
-import { getLiveStatus } from '@/features/machines/api'
+import { getLiveStatus, reconnectMachine } from '@/features/machines/api'
 import { useLiveLogs } from '@/features/logs/composables/useLiveLogs'
 import { useUIStore } from '@/stores/ui'
 import { setLanguage } from '@/i18n/index.js'
@@ -425,11 +444,35 @@ async function fetchLiveStatus() {
 }
 
 function getMachineStatusIcon(ip) {
-  const status = machineStatus.value[ip]
+  const m = machineStatus.value[ip]
+  if (!m) return '⚪'
+  const status = typeof m === 'object' ? m.status : m
   if (status === 'connected') return '🟢'
   if (status === 'stuck') return '🟡'
   if (status === 'disconnected') return '🔴'
   return '⚪'
+}
+
+const reconnectingIps = ref([])
+
+async function handleReconnect(ip) {
+  reconnectingIps.value.push(ip)
+  try {
+    const res = await reconnectMachine(ip)
+    console.log(`Reconnected machine ${ip}:`, res.message)
+    await fetchLiveStatus()
+  } catch (e) {
+    console.error(`Failed to reconnect machine ${ip}:`, e)
+    alert(`Không thể kết nối lại máy ${ip}: ${e.message}`)
+  } finally {
+    reconnectingIps.value = reconnectingIps.value.filter(item => item !== ip)
+  }
+}
+
+function formatLastEventTime(timestamp) {
+  if (!timestamp) return ''
+  const d = new Date(timestamp * 1000)
+  return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
 async function handleSearch() {
@@ -1095,6 +1138,55 @@ onUnmounted(() => {
 
 .settings-btn:hover {
   background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.m-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.m-last-activity {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.m-last-activity.no-activity {
+  color: #f59e0b;
+  opacity: 0.8;
+}
+
+.btn-reconnect-small {
+  padding: 4px 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-reconnect-small:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+  color: white;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.btn-reconnect-small:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.m-toggles {
+  display: flex;
+  gap: 15px;
+  align-items: center;
 }
 
 </style>

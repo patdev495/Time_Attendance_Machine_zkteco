@@ -451,6 +451,10 @@
     "machine_settings": "Cấu hình máy chấm công",
     "toggle_live": "Theo dõi trực tiếp",
     "toggle_canteen": "Máy nhà ăn",
-    "config_note": "* Thay đổi sẽ được hệ thống cập nhật sau tối đa 10 giây."
+    "config_note": "* Thay đổi sẽ được hệ thống cập nhật sau tối đa 10 giây.",
+    "last_event": "Lần cuối:",
+    "no_event": "Chưa nhận lượt chấm",
+    "reconnect_btn": "Reset",
+    "reconnect_title": "Kết nối lại luồng live-monitor cho máy"
   }
 }

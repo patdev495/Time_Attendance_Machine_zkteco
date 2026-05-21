@@ -25,6 +25,10 @@ export function getLiveStatus() {
   return apiFetch('/live-status')
 }
 
+export function reconnectMachine(ip) {
+  return apiFetch(`/${encodeURIComponent(ip)}/reconnect`, { method: 'POST' })
+}
+
 export function getMachineEmployees(ip) {
   return apiFetch(`/${encodeURIComponent(ip)}/employees`)
 }

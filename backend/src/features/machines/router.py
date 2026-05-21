@@ -321,3 +321,15 @@ def update_machine_cfg(ip: str, req: MachineConfigUpdate):
     if not success:
         raise HTTPException(status_code=500, detail=msg)
     return {"status": "success"}
+
+@router.post("/{ip}/reconnect")
+def reconnect_machine_endpoint(ip: str):
+    """Force reconnect a machine's live monitoring thread."""
+    if DEMO_MODE:
+        return {"status": "success", "message": "Demo mode: simulated reconnect"}
+    from .live_monitor import live_monitor
+    success, msg = live_monitor.reconnect_machine(ip)
+    if not success:
+        raise HTTPException(status_code=500, detail=msg)
+    return {"status": "success", "message": msg}
+

@@ -149,7 +149,14 @@ class DemoLiveSimulator:
     
     def get_status(self):
         """Returns simulated connection status for all demo machines."""
-        return self._status
+        res = {}
+        for ip, status in self._status.items():
+            res[ip] = {
+                "status": status,
+                "last_real_event": None,
+                "seconds_since_last_event": None
+            }
+        return res
 
 
 # Global instance

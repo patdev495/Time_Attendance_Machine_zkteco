@@ -31,6 +31,7 @@ class LiveMonitorManager:
         self._session.mount('http://', HTTPAdapter(pool_connections=10, pool_maxsize=20))
         self._last_activity = {} # ip -> timestamp of last seen packet (including None)
         self._status = {}        # ip -> "connected" | "stuck" | "disconnected"
+        self._last_real_event = {} # ip -> timestamp of last real event (not None)
 
     @staticmethod
     def _test_network_reach(ip, port=4370, timeout=3):
@@ -190,6 +191,9 @@ class LiveMonitorManager:
                     if event is None:
                         # This happens on timeout (10s), just keep waiting
                         continue
+                    
+                    # Update last real event time
+                    self._last_real_event[ip] = time.time()
                         
                     if time.time() < ignore_until:
                         logger.debug(f"[MONITOR {ip}] Skipping replayed event: {event}")
@@ -377,7 +381,31 @@ class LiveMonitorManager:
 
     def get_status(self):
         """Returns the current connection status of all monitored machines."""
-        return self._status
+        res = {}
+        for ip, status in self._status.items():
+            last_real = self._last_real_event.get(ip)
+            res[ip] = {
+                "status": status,
+                "last_real_event": last_real,
+                "seconds_since_last_event": time.time() - last_real if last_real else None
+            }
+        return res
+
+    def reconnect_machine(self, ip):
+        """Force reconnect a machine's live monitoring thread."""
+        if ip in self.active_monitors:
+            logger.info(f"[MGMT] Reconnecting {ip} — stopping current thread")
+            self._status[ip] = "disconnected"
+            if ip in self._last_activity:
+                del self._last_activity[ip]
+            if ip in self._last_real_event:
+                del self._last_real_event[ip]
+            del self.active_monitors[ip]
+            return True, "Reconnecting initiated"
+        else:
+            logger.info(f"[MGMT] Reconnecting {ip} — was not active, starting now")
+            self._start_monitor(ip)
+            return True, "Started monitor thread"
 
 # Global instance
 live_monitor = LiveMonitorManager()

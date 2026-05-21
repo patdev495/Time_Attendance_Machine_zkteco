@@ -409,6 +409,10 @@
     "machine_settings": "考勤机配置",
     "toggle_live": "实时监控",
     "toggle_canteen": "餐厅机",
-    "config_note": "* 系统将在10秒内更新更改。"
+    "config_note": "* 系统将在10秒内更新更改。",
+    "last_event": "最后打卡:",
+    "no_event": "尚未收到打卡",
+    "reconnect_btn": "重连",
+    "reconnect_title": "重新连接该考勤机的实时监控线程"
   }
 }
