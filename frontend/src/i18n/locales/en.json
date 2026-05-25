@@ -188,7 +188,6 @@
       "missing_checkout": "Missing Check-out",
       "absent": "Absent"
     },
-    "summary_subtitle": "Analyze daily attendance, manage shifts, and export reports.",
     "excel_sync": {
       "title": "Excel & Machine Sync",
       "drag_drop": "Drag & Drop Excel file (.xlsx) here",
