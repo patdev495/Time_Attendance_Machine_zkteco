@@ -232,12 +232,12 @@ def sync_employees_full(file_bytes: Optional[io.BytesIO] = None):
                 sync_status["total"] = total_rows
                 sync_status["current_step"] = f"Processing {total_rows} Excel records..."
 
-            existing_meta = {e.employee_id: e for e in db.query(EmployeeMetadata).all()}
+            existing_meta: Dict[str, EmployeeMetadata] = {str(e.employee_id): e for e in db.query(EmployeeMetadata).all()}
             
             excel_synced_ids = set()
             
             # Case-insensitive column matching
-            cols_upper = {str(c).strip().upper(): c for c in df.columns}
+            cols_upper = {c.strip().upper(): c for c in df.columns}
             logger.info(f"Excel Columns detected: {list(cols_upper.keys())}")
             
             for idx, row in df.iterrows():
@@ -265,19 +265,19 @@ def sync_employees_full(file_bytes: Optional[io.BytesIO] = None):
                     db.add(meta)
                     existing_meta[emp_id] = meta
                 
-                meta.full_emp_id = f_id
+                meta.full_emp_id = f_id  # type: ignore
                 
                 if 'SHIFT' in row and pd.notna(row['SHIFT']):
                     val = str(row['SHIFT']).strip().upper()
-                    meta.shift = val
-                    meta.status = 'TV' if val == 'TV' else 'Active'
+                    meta.shift = val  # type: ignore
+                    meta.status = 'TV' if val == 'TV' else 'Active'  # type: ignore
                 
                 if 'EMP_NAME' in cols_upper and pd.notna(row[cols_upper['EMP_NAME']]): 
-                    meta.emp_name = str(row[cols_upper['EMP_NAME']])
+                    meta.emp_name = str(row[cols_upper['EMP_NAME']])  # type: ignore
                 if 'DEPARTMENT' in cols_upper and pd.notna(row[cols_upper['DEPARTMENT']]): 
-                    meta.department = str(row[cols_upper['DEPARTMENT']])
+                    meta.department = str(row[cols_upper['DEPARTMENT']])  # type: ignore
                 if 'GROUP' in cols_upper and pd.notna(row[cols_upper['GROUP']]): 
-                    meta.group = str(row[cols_upper['GROUP']])
+                    meta.group = str(row[cols_upper['GROUP']])  # type: ignore
                 
                 # Phase 13: Robust hired date mapping
                 start_date_aliases = ['START_DATE', 'NGÀY VÀO LÀM', 'NGAY VAO LAM', 'NGÀY VÀO', 'HIRED DATE', 'DATE HIRED', 'START DATE']
@@ -291,7 +291,7 @@ def sync_employees_full(file_bytes: Optional[io.BytesIO] = None):
                         break
                 
                 if hired_date_val is not None and pd.notna(hired_date_val):
-                    if idx < 5:
+                    if idx < 5:  # type: ignore
                         logger.info(f"Row {idx} [{emp_id}] - Raw hired_date_val: {hired_date_val} (Type: {type(hired_date_val)})")
                     try:
                         # Handle Excel numeric dates (e.g. 44409)
@@ -301,21 +301,21 @@ def sync_employees_full(file_bytes: Optional[io.BytesIO] = None):
                             dt = pd.to_datetime(hired_date_val)
                             
                         if dt.year > 1900: # Use 1900 as more realistic bound for birth/hire dates
-                            meta.start_date = dt.date()
+                            meta.start_date = dt.date()  # type: ignore
                         else:
-                            meta.start_date = None
-                            if idx < 5: logger.info(f"Row {idx} skipped: year too low ({dt.year})")
+                            meta.start_date = None  # type: ignore
+                            if idx < 5: logger.info(f"Row {idx} skipped: year too low ({dt.year})")  # type: ignore
                     except Exception as e:
-                        meta.start_date = None
-                        if idx < 5: logger.error(f"Row {idx} error: {e}")
+                        meta.start_date = None  # type: ignore
+                        if idx < 5: logger.error(f"Row {idx} error: {e}")  # type: ignore
                 else:
-                    meta.start_date = None
+                    meta.start_date = None  # type: ignore
 
                 # Force updated_at refresh to show sync happened
                 from sqlalchemy import func
-                meta.updated_at = func.now()
+                meta.updated_at = func.now()  # type: ignore
 
-                if idx % 100 == 0:
+                if idx % 100 == 0:  # type: ignore
                     logger.info(f"Syncing Excel row {idx}/{total_rows} (Last Match: {found_alias or 'None'})")
 
                 with status_lock:
@@ -338,7 +338,7 @@ def sync_employees_full(file_bytes: Optional[io.BytesIO] = None):
 
             date_columns = {}  # col_name -> (day, month)
             for col in df.columns:
-                col_str = str(col).strip()
+                col_str = col.strip()
                 # Match patterns like "1/4", "01/04", "15/4"
                 m = re.match(r'^(\d{1,2})/(\d{1,2})$', col_str)
                 if m:

@@ -320,6 +320,8 @@ def run_export_task(start_date: date, end_date: date, view_mode: str):
             
         wb = Workbook()
         ws = wb.active
+        if ws is None:
+            ws = wb.create_sheet()
         ws.title = "Attendance Export"
         # Column 7 renamed to "Chỉ số", and real "Ghi chú" added at the end
         headers = ["Mã máy", "Mã công ty", "Tên nhân viên", "Phòng ban", "Nhóm", "Ngày vào làm", "Chỉ số"]
@@ -579,7 +581,7 @@ def run_export_task(start_date: date, end_date: date, view_mode: str):
                 for row_idx in range(1, min(sheet.max_row, 20) + 1):
                     val = sheet.cell(row=row_idx, column=col_idx).value
                     if val:
-                        length = max(len(str(line)) for line in str(val).split('\n'))
+                        length = max(len(line) for line in str(val).split('\n'))
                         if length > max_length: max_length = length
                 
                 adjusted_width = (max_length + 4) * 1.1 

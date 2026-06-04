@@ -54,18 +54,8 @@ class LiveMonitorManager:
         logger.info("="*60)
         logger.info(f"asyncio loop set: {self._loop is not None}")
         
-        # Run a quick network reachability test for all machines
-        live_configs = get_live_machine_list()
-        logger.info(f"machines.txt returned {len(live_configs)} live machines")
-        for cfg in live_configs:
-            ip = cfg['ip']
-            ok, err = self._test_network_reach(ip)
-            status = "✓ REACHABLE" if ok else f"✗ UNREACHABLE ({err})"
-            tag = " [CANTEEN]" if cfg.get('is_canteen') else ""
-            logger.info(f"  {ip}{tag}: {status}")
-        logger.info("="*60)
-        
         # Start management loop in a background thread
+        # Diagnostic network tests are now deferred to the monitor loops to avoid blocking startup.
         management_thread = threading.Thread(target=self._management_loop, daemon=True)
         management_thread.start()
 
