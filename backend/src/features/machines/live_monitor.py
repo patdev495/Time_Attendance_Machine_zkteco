@@ -208,7 +208,7 @@ class LiveMonitorManager:
 
     def _process_event(self, ip, event):
         """Processes a single live attendance event."""
-        user_id = str(event.user_id)
+        user_id = str(event.user_id).strip()
         # Skip system user '1' if necessary (custom logic from logs/service.py)
         if user_id == '1':
             return
@@ -261,7 +261,7 @@ class LiveMonitorManager:
             
             # 2. Get Employee Name for broadcast
             emp = db.query(EmployeeLocalRegistry).filter(
-                func.ltrim(func.rtrim(EmployeeLocalRegistry.employee_id)) == user_id.strip()
+                EmployeeLocalRegistry.employee_id == user_id
             ).first()
             emp_name = emp.emp_name if emp else f"ID: {user_id}"
 

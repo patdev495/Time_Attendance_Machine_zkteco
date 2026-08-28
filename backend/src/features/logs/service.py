@@ -78,7 +78,7 @@ def sync_all_machines():
 
             new_logs = []
             for att in attendances:
-                user_id = str(att.user_id)
+                user_id = str(att.user_id).strip()
                 if user_id == '1': # Skip admin/system user
                     continue
                 timestamp = att.timestamp.replace(tzinfo=None)

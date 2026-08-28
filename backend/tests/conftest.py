@@ -5,12 +5,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 
-# Ensure we can import from backend.src
-# This allows 'pytest backend/tests' to find 'backend.src'
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+backend_src = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src'))
+if backend_src not in sys.path:
+    sys.path.insert(0, backend_src)
 
-from backend.src.database import Base, get_db
-from backend.src.main import app
+from database import Base, get_db
+from main import app
 
 # Use in-memory SQLite for tests to keep them fast and independent of MSSQL
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

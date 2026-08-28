@@ -25,45 +25,62 @@ def get_logs(
     db: Session = Depends(get_db)
 ):
     from database import EmployeeLocalRegistry, EmployeeMetadata
-    query = db.query(
+    
+    filters = []
+    
+    if employee_id:
+        clean_emp = employee_id.strip()
+        # Step 1: Find matching IDs from registry/metadata (fast, small tables)
+        match_ids = db.query(EmployeeLocalRegistry.employee_id).filter(
+            EmployeeLocalRegistry.employee_id.ilike(f"%{clean_emp}%") |
+            safe_ilike(EmployeeLocalRegistry.emp_name, f"%{clean_emp}%")
+        ).all()
+        match_ids_meta = db.query(EmployeeMetadata.employee_id).filter(
+            EmployeeMetadata.employee_id.ilike(f"%{clean_emp}%") |
+            safe_ilike(EmployeeMetadata.emp_name, f"%{clean_emp}%")
+        ).all()
+        
+        found_ids = {r[0] for r in match_ids} | {r[0] for r in match_ids_meta} | {clean_emp}
+        expanded_ids = set()
+        for fid in found_ids:
+            if fid:
+                expanded_ids.add(fid)
+                expanded_ids.add(fid.strip())
+        
+        # Step 2: Filter large AttendanceLog table using direct indexed IN clause
+        filters.append(AttendanceLog.employee_id.in_(list(expanded_ids)))
+
+    if machine_ip:
+        filters.append(AttendanceLog.machine_ip == machine_ip)
+    
+    if start_date:
+        filters.append(AttendanceLog.attendance_date >= start_date)
+    if end_date:
+        filters.append(AttendanceLog.attendance_date <= end_date)
+        
+    # Step 3: Fast count on base AttendanceLogs table (no heavy joins)
+    count_query = db.query(func.count(AttendanceLog.id))
+    if filters:
+        count_query = count_query.filter(*filters)
+    total = count_query.scalar() or 0
+
+    # Step 4: Query paginated data with indexed outer joins
+    data_query = db.query(
         AttendanceLog.id,
         AttendanceLog.employee_id,
         AttendanceLog.attendance_time,
         AttendanceLog.machine_ip,
         func.coalesce(EmployeeLocalRegistry.emp_name, EmployeeMetadata.emp_name).label("emp_name")
-    ).outerjoin(EmployeeLocalRegistry, func.ltrim(func.rtrim(AttendanceLog.employee_id)) == func.ltrim(func.rtrim(EmployeeLocalRegistry.employee_id))) \
-     .outerjoin(EmployeeMetadata, func.ltrim(func.rtrim(AttendanceLog.employee_id)) == func.ltrim(func.rtrim(EmployeeMetadata.employee_id)))
-    
-    if employee_id:
-        employee_id = employee_id.strip()
-        # Step 1: Find matching IDs from registry/metadata (fast, small tables)
-        match_ids = db.query(EmployeeLocalRegistry.employee_id).filter(
-            EmployeeLocalRegistry.employee_id.ilike(f"%{employee_id}%") |
-            safe_ilike(EmployeeLocalRegistry.emp_name, f"%{employee_id}%")
-        ).all()
-        match_ids_meta = db.query(EmployeeMetadata.employee_id).filter(
-            EmployeeMetadata.employee_id.ilike(f"%{employee_id}%") |
-            safe_ilike(EmployeeMetadata.emp_name, f"%{employee_id}%")
-        ).all()
-        
-        found_ids = {r[0] for r in match_ids} | {r[0] for r in match_ids_meta} | {employee_id}
-        
-        # Step 2: Filter large AttendanceLog table using indexed IN clause (very fast)
-        # Use ltrim/rtrim to be robust against machine-generated ID spaces
-        query = query.filter(func.ltrim(func.rtrim(AttendanceLog.employee_id)).in_(list(found_ids)))
-    if machine_ip:
-        query = query.filter(AttendanceLog.machine_ip == machine_ip)
-    
-    if start_date:
-        query = query.filter(AttendanceLog.attendance_date >= start_date)
-    if end_date:
-        query = query.filter(AttendanceLog.attendance_date <= end_date)
-        
-    total = query.count()
-    results = query.order_by(desc(AttendanceLog.attendance_time)) \
-                   .offset((page - 1) * size) \
-                   .limit(size) \
-                   .all()
+    ).outerjoin(EmployeeLocalRegistry, AttendanceLog.employee_id == EmployeeLocalRegistry.employee_id) \
+     .outerjoin(EmployeeMetadata, AttendanceLog.employee_id == EmployeeMetadata.employee_id)
+
+    if filters:
+        data_query = data_query.filter(*filters)
+
+    results = data_query.order_by(desc(AttendanceLog.attendance_time)) \
+                        .offset((page - 1) * size) \
+                        .limit(size) \
+                        .all()
                    
     return {
         "items": [r._asdict() for r in results],
