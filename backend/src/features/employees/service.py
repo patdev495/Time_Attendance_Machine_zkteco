@@ -146,7 +146,7 @@ def export_employees_to_excel(db: Session, search: str = None, source_status: st
     if privilege is not None:
         query = query.filter(EmployeeLocalRegistry.privilege == privilege)
         
-    query = query.order_by(func.cast(EmployeeLocalRegistry.employee_id, Integer).asc())
+    query = query.order_by(func.length(EmployeeLocalRegistry.employee_id).asc(), EmployeeLocalRegistry.employee_id.asc())
     employees = query.all()
     
     # Lấy thông tin chấm công gần nhất cho mỗi nhân viên

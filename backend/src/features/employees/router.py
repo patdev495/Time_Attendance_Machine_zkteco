@@ -78,11 +78,11 @@ def list_employees(
         query = query.filter(EmployeeLocalRegistry.privilege == privilege)
 
 
-    # Apply sorting (Numeric sort for employee_id)
+    # Apply sorting (Natural sort: length first, then lexical - safe on MSSQL 2008 R2 & SQLite)
     if order.lower() == 'desc':
-        query = query.order_by(func.cast(EmployeeLocalRegistry.employee_id, Integer).desc())
+        query = query.order_by(func.length(EmployeeLocalRegistry.employee_id).desc(), EmployeeLocalRegistry.employee_id.desc())
     else:
-        query = query.order_by(func.cast(EmployeeLocalRegistry.employee_id, Integer).asc())
+        query = query.order_by(func.length(EmployeeLocalRegistry.employee_id).asc(), EmployeeLocalRegistry.employee_id.asc())
 
 
     total_count = query.count()
