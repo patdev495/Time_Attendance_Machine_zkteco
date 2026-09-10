@@ -164,7 +164,10 @@ def export_employees_to_excel(
     
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Employees"
+    if ws is None:
+        ws = wb.create_sheet("Employees")
+    else:
+        ws.title = "Employees"
     
     headers = [
         "Mã NV (Máy CC)", "Mã NV (Đầy đủ)", "Họ và Tên", "Phòng Ban", 
