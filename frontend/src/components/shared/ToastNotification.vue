@@ -41,32 +41,31 @@ const store = useNotificationStore()
 
 .toast-item {
   pointer-events: auto;
-  min-width: 320px;
-  max-width: 450px;
-  padding: 16px;
-  border-radius: 14px;
+  min-width: 300px;
+  max-width: 420px;
+  padding: 14px 16px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 14px;
-  background: rgba(15, 23, 42, 0.9);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s var(--ease-snap);
 }
 
 .toast-item:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--border-hover);
 }
 
 .toast-content {
   flex: 1;
-  color: #f1f5f9;
-  font-size: 0.95rem;
+  color: var(--text-main);
+  font-size: 0.875rem;
   line-height: 1.5;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-ui);
   font-weight: 500;
 }
 
@@ -87,18 +86,18 @@ const store = useNotificationStore()
   opacity: 1;
 }
 
-/* Types */
-.success { border-left: 4px solid #10b981; }
-.success .toast-icon { color: #10b981; }
+/* Types — phosphor signals */
+.success { border-left: 2px solid var(--status-live); }
+.success .toast-icon { color: var(--status-live); }
 
-.error { border-left: 4px solid #f43f5e; }
-.error .toast-icon { color: #f43f5e; }
+.error { border-left: 2px solid var(--status-dead); }
+.error .toast-icon { color: var(--status-dead); }
 
-.warning { border-left: 4px solid #fbbf24; }
-.warning .toast-icon { color: #fbbf24; }
+.warning { border-left: 2px solid var(--status-warn); }
+.warning .toast-icon { color: var(--status-warn); }
 
-.info { border-left: 4px solid #6366f1; }
-.info .toast-icon { color: #6366f1; }
+.info { border-left: 2px solid var(--amber); }
+.info .toast-icon { color: var(--amber); }
 
 /* Transitions */
 .toast-enter-active {

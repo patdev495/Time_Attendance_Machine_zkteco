@@ -31,8 +31,8 @@ const store = useNotificationStore()
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.7);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
   z-index: 10000;
   display: flex;
   align-items: center;
@@ -41,13 +41,13 @@ const store = useNotificationStore()
 }
 
 .modal-card {
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
   width: 100%;
-  max-width: 400px;
+  max-width: 380px;
   overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.7);
 }
 
 .modal-header {
@@ -56,23 +56,23 @@ const store = useNotificationStore()
 }
 
 .warning-icon {
-  width: 60px;
-  height: 60px;
-  background: rgba(239, 68, 68, 0.1);
+  width: 50px;
+  height: 50px;
+  background: var(--danger-light);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #f43f5e;
-  margin: 0 auto 16px;
+  color: var(--status-dead);
+  margin: 0 auto 14px;
 }
 
 .modal-header h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-main);
   margin: 0;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-ui);
 }
 
 .modal-body {
@@ -81,18 +81,19 @@ const store = useNotificationStore()
 }
 
 .modal-body p {
-  color: #94a3b8;
-  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
   line-height: 1.6;
   margin: 0;
+  font-family: var(--font-ui);
 }
 
 .modal-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 20px 24px 24px;
-  background: rgba(255, 255, 255, 0.02);
+  gap: 10px;
+  padding: 16px 20px 20px;
+  background: var(--bg-raised);
 }
 
 .btn {
@@ -103,13 +104,15 @@ const store = useNotificationStore()
 }
 
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.05);
-  color: #94a3b8;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--amber-glow);
+  color: var(--text-main);
+  border-color: var(--border-hover);
 }
 
 /* Transitions */

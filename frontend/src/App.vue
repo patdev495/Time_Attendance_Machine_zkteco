@@ -32,21 +32,21 @@ const route = useRoute()
 .app-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #020617; /* Darker slate/black */
+  background-color: var(--bg);
 }
 
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0; /* Prevent flex blowout */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+  transition: all 0.28s var(--ease-snap);
 }
 
 .container {
-  max-width: 1400px;
-  margin: 20px auto;
-  padding: 0 40px;
+  max-width: 1440px;
+  margin: 24px auto;
+  padding: 0 36px;
   width: 100%;
   flex: 1;
 }
@@ -58,16 +58,15 @@ const route = useRoute()
   flex-direction: column;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
+/* Page transition — exposure emerge */
+.fade-enter-active {
+  animation: emerge 0.3s var(--ease-out) both;
 }
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.fade-leave-active {
+  animation: emerge 0.15s var(--ease-snap) reverse both;
 }
 
 @media (max-width: 768px) {
-  .container { padding: 0 15px; }
+  .container { padding: 0 16px; }
 }
 </style>

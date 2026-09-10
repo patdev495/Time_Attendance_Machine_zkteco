@@ -31,3 +31,14 @@ backend/logs/
 backend/__pycache__/
 scratch/
 *.tar
+
+# AI Agent / IDE tools
+.agent/
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.impeccable/
+.kiro/
+.opencode/

@@ -538,7 +538,7 @@ onUnmounted(() => {
 <style scoped>
 .employees-view {
   padding: 24px;
-  color: #e2e8f0;
+  color: var(--text-main);
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -556,65 +556,80 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  padding: 10px 20px;
+  background-color: var(--amber);
+  color: #0e0900;
+  border: 1px solid var(--amber);
+  padding: 9px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.2s;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s var(--ease-snap);
 }
 
 .btn-primary:hover {
-  background-color: #2563eb;
+  background-color: var(--primary-hover);
+  box-shadow: 0 0 0 3px rgba(245,166,35,0.2);
 }
 
 .btn-primary:disabled {
-  background-color: #475569;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .btn-secondary {
-  background-color: #475569;
-  color: white;
-  border: none;
-  padding: 10px 20px;
+  background-color: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 9px 16px;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.2s;
+  font-weight: 500;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  transition: all 0.2s var(--ease-snap);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   text-decoration: none;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #64748b;
+  color: var(--text-main);
+  border-color: var(--border-hover);
+  background: var(--amber-glow);
 }
 
 .btn-purple {
-  background-color: #8b5cf6 !important;
+  background-color: transparent !important;
+  border-color: rgba(160,120,255,0.3) !important;
+  color: #c4a4ff !important;
 }
 .btn-purple:hover:not(:disabled) {
-  background-color: #7c3aed !important;
+  background-color: rgba(160,120,255,0.08) !important;
+  border-color: rgba(160,120,255,0.5) !important;
 }
 
 .btn-green {
-  border-color: #10b981 !important;
-  color: #10b981 !important;
+  border-color: rgba(57,255,110,0.25) !important;
+  color: var(--status-live) !important;
 }
 .btn-green:hover:not(:disabled) {
-  background-color: rgba(16, 185, 129, 0.1) !important;
+  background-color: rgba(57,255,110,0.06) !important;
+  border-color: rgba(57,255,110,0.4) !important;
 }
 
 .btn-outline-danger {
-  border-color: #ef4444 !important;
-  color: #ef4444 !important;
+  border-color: rgba(255,68,68,0.3) !important;
+  color: var(--status-dead) !important;
 }
 .btn-outline-danger:hover:not(:disabled) {
-  background-color: rgba(239, 68, 68, 0.1) !important;
+  background-color: var(--danger-light) !important;
+  border-color: rgba(255,68,68,0.5) !important;
 }
 
 .header-actions {
@@ -632,13 +647,15 @@ onUnmounted(() => {
 }
 
 .btn-danger {
-  background-color: #dc2626;
-  color: white;
-  border: none;
-  padding: 10px 20px;
+  background-color: var(--danger-light);
+  color: var(--status-dead);
+  border: 1px solid rgba(255,68,68,0.3);
+  padding: 9px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
   transition: all 0.2s;
   display: flex;
   align-items: center;
@@ -646,48 +663,50 @@ onUnmounted(() => {
 }
 
 .btn-danger:hover {
-  background-color: #b91c1c;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+  background-color: rgba(255,68,68,0.18);
+  border-color: rgba(255,68,68,0.5);
 }
 
 .btn-danger:disabled {
-  background-color: #7f1d1d;
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .status-banner {
-  background-color: #334155;
-  padding: 12px 20px;
+  background-color: var(--bg-raised);
+  padding: 10px 16px;
   border-radius: 6px;
-  margin-bottom: 24px;
-  border-left: 4px solid #3b82f6;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--amber);
 }
 
 .bulk-banner {
-  border-left-color: #f87171;
-  background-color: rgba(239, 68, 68, 0.05);
+  border-left-color: var(--status-dead);
+  background-color: var(--danger-light);
 }
 
 .status-success {
-  border-left-color: #22c55e;
-  background-color: #0f172a;
+  border-left-color: var(--status-live);
+  background-color: var(--bg-raised);
 }
 
 .banner-content {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 0.95rem;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: var(--text-main);
+  font-family: var(--font-ui);
 }
 
 .spinner-small {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-top: 2px solid #fff;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid rgba(245,166,35,0.2);
+  border-top: 1.5px solid var(--amber);
   border-radius: 50%;
-  animation: rotate 1s linear infinite;
+  animation: rotate 0.8s linear infinite;
 }
 
 @keyframes rotate {
@@ -695,9 +714,7 @@ onUnmounted(() => {
   to { transform: rotate(360deg); }
 }
 
-.text-danger {
-  color: #ef4444;
-}
+.text-danger { color: var(--status-dead); }
 
 .animate-in {
   animation: slideDown 0.4s ease-out forwards;
@@ -715,16 +732,18 @@ onUnmounted(() => {
 }
 
 .filter-bar input, .filter-bar select {
-  padding: 10px 14px;
+  padding: 9px 12px;
   border-radius: 6px;
-  border: 1px solid #475569;
-  background-color: #1e293b;
-  color: white;
+  border: 1px solid var(--border);
+  background-color: var(--bg-input);
+  color: var(--text-main);
   outline: none;
+  font-family: var(--font-ui);
 }
 
 .filter-bar input:focus, .filter-bar select:focus {
-  border-color: #3b82f6;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(245,166,35,0.1);
 }
 </style>
 <style scoped>
@@ -737,20 +756,22 @@ onUnmounted(() => {
   top: 100%;
   left: 0;
   margin-top: 4px;
-  background: rgba(15, 23, 42, 0.98);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 12px;
-  padding: 0.5rem;
+  background: var(--bg-surface);
+  border: 1px solid rgba(255,68,68,0.25);
+  border-radius: 7px;
+  padding: 0.4rem;
   z-index: 100;
   min-width: 200px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
 }
 .clear-dropdown-header {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  padding: 0.25rem 0.5rem;
-  margin-bottom: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  padding: 0.2rem 0.5rem;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-ui);
 }
 .clear-dropdown-item {
   display: block;

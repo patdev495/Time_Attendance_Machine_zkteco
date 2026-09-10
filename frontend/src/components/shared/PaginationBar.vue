@@ -85,29 +85,29 @@ const showRightDots = computed(() => {
 <style scoped>
 .pagination { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: center; padding: 20px 0 10px; }
 .btn-page {
-  padding: 7px 13px;
-  border-radius: 8px;
+  padding: 6px 11px;
+  border-radius: 6px;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.88rem;
-  transition: all 0.2s;
-  min-width: 36px;
+  font-family: var(--font-data);
+  font-size: 0.82rem;
+  transition: all 0.18s;
+  min-width: 32px;
 }
-.btn-page:hover:not(:disabled) { border-color: var(--primary); color: white; background: rgba(99,102,241,0.1); }
-.btn-page.active { background: var(--primary); color: white; border-color: var(--primary); }
-.btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-page:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
+.btn-page.active { background: var(--amber-dim); color: var(--amber); border-color: rgba(245,166,35,0.4); font-weight: 600; }
+.btn-page:disabled { opacity: 0.35; cursor: not-allowed; }
 .dots { color: var(--text-muted); padding: 0 2px; }
 .goto-wrap { display: flex; align-items: center; gap: 6px; font-size: 0.83rem; color: var(--text-muted); margin-left: 8px; }
 .goto-input {
-  width: 52px; padding: 6px 8px;
-  border-radius: 7px; border: 1px solid var(--border);
-  background: rgba(15,23,42,0.6); color: white;
-  font-family: 'Outfit', sans-serif; font-size: 0.83rem;
+  width: 48px; padding: 5px 7px;
+  border-radius: 5px; border: 1px solid var(--border);
+  background: var(--bg-input); color: var(--text-main);
+  font-family: var(--font-data); font-size: 0.8rem;
   text-align: center;
 }
-.goto-input:focus { outline: none; border-color: var(--primary); }
-.page-info { font-size: 0.83rem; color: var(--text-muted); margin-left: 8px; }
+.goto-input:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(245,166,35,0.1); }
+.page-info { font-size: 0.78rem; color: var(--text-muted); margin-left: 8px; font-family: var(--font-data); }
 </style>
