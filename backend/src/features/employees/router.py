@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import func, Integer
+from sqlalchemy import func
 from database import get_db, EmployeeLocalRegistry
 from compat import safe_ilike
 from typing import List, Optional
@@ -45,8 +45,6 @@ def run_update_registry(db: Session):
         registry_update_state["status"] = f"Error: {e}"
     finally:
         registry_update_state["is_running"] = False
-
-from sqlalchemy import cast, Integer
 
 @router.get("", response_model=EmployeeListOut)
 def list_employees(
@@ -145,11 +143,11 @@ def update_employee(employee_id: str, payload: EmployeeUpdate, db: Session = Dep
         raise HTTPException(status_code=404, detail="Employee not found")
         
     if payload.department is not None:
-        registry_entry.department = payload.department
+        setattr(registry_entry, "department", payload.department)
     if payload.group_name is not None:
-        registry_entry.group_name = payload.group_name
+        setattr(registry_entry, "group_name", payload.group_name)
     if payload.shift is not None:
-        registry_entry.shift = payload.shift
+        setattr(registry_entry, "shift", payload.shift)
         
     db.commit()
     

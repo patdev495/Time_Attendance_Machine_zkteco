@@ -10,8 +10,9 @@ import concurrent.futures
 import logging
 import io
 import openpyxl
-from sqlalchemy import func, Integer
+from sqlalchemy import func
 from compat import safe_ilike
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -116,18 +117,23 @@ def update_employee_info(employee_id: str, db_name: str, db: Session):
     # 1. Update EmployeeLocalRegistry
     registry_entry = db.query(EmployeeLocalRegistry).filter(EmployeeLocalRegistry.employee_id == employee_id).first()
     if registry_entry:
-        registry_entry.emp_name = db_name
+        setattr(registry_entry, "emp_name", db_name)
         
     # 2. Update EmployeeMetadata
     meta_entry = db.query(EmployeeMetadata).filter(EmployeeMetadata.employee_id == employee_id).first()
     if meta_entry:
-        meta_entry.emp_name = db_name
+        setattr(meta_entry, "emp_name", db_name)
         
     db.commit()
     
     return {"status": "success", "message": "Updated in DB"}
 
-def export_employees_to_excel(db: Session, search: str = None, source_status: str = None, privilege: int = None):
+def export_employees_to_excel(
+    db: Session, 
+    search: Optional[str] = None, 
+    source_status: Optional[str] = None, 
+    privilege: Optional[int] = None
+):
     query = db.query(EmployeeLocalRegistry)
     
     if search:
