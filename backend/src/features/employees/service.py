@@ -49,16 +49,16 @@ def update_registry(db: Session):
                 # Update status based on precedence
                 if reg.employee_id in excel_users:
                     emp = excel_users[reg.employee_id]
-                    reg.emp_name = emp.emp_name
-                    reg.department = emp.department
-                    reg.group_name = emp.group
-                    reg.start_date = emp.start_date
-                    reg.shift = emp.shift
-                    reg.source_status = 'excel_synced'
+                    setattr(reg, "emp_name", emp.emp_name)
+                    setattr(reg, "department", emp.department)
+                    setattr(reg, "group_name", emp.group)
+                    setattr(reg, "start_date", emp.start_date)
+                    setattr(reg, "shift", emp.shift)
+                    setattr(reg, "source_status", "excel_synced")
                 elif reg.employee_id in machine_users:
-                    reg.source_status = 'machine_only'
+                    setattr(reg, "source_status", "machine_only")
                 elif reg.employee_id in log_users:
-                    reg.source_status = 'log_only'
+                    setattr(reg, "source_status", "log_only")
                     
         db.commit()
         
