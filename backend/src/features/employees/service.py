@@ -10,6 +10,7 @@ import concurrent.futures
 import logging
 import io
 import openpyxl
+from openpyxl.utils import get_column_letter
 from sqlalchemy import func
 from compat import safe_ilike
 from typing import Optional
@@ -197,17 +198,14 @@ def export_employees_to_excel(
             ws.cell(row=current_row, column=9).number_format = 'yyyy-mm-dd hh:mm:ss'
         
     # Auto-adjust column widths
-    for col in ws.columns:
+    for col_idx in range(1, ws.max_column + 1):
+        col_letter = get_column_letter(col_idx)
         max_length = 0
-        col_letter = col[0].column_letter
-        for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except:
-                pass
-        adjusted_width = (max_length + 2)
-        ws.column_dimensions[col_letter].width = adjusted_width
+        for row_idx in range(1, ws.max_row + 1):
+            cell_val = ws.cell(row=row_idx, column=col_idx).value
+            if cell_val is not None:
+                max_length = max(max_length, len(str(cell_val)))
+        ws.column_dimensions[col_letter].width = max_length + 2
         
     output = io.BytesIO()
     wb.save(output)
